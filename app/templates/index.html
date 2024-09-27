@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Streamlink Threadfin Interface</title>
+</head>
+<body>
+    <h1>Streamlink Threadfin Interface</h1>
+    <form action="{{ url_for('add') }}" method="post">
+        <label for="name">Stream Name:</label><br>
+        <input type="text" id="name" name="name" required><br>
+        <label for="url">Stream URL:</label><br>
+        <input type="text" id="url" name="url" required><br>
+        <label for="auth">Authentication (optional):</label><br>
+        <input type="text" id="auth" name="auth"><br><br>
+        <input type="submit" value="Add Stream">
+    </form>
+    <h2>Available Streams</h2>
+    <ul>
+        {% for stream in streams %}
+            <li>
+                {{ stream.name }} - <a href="{{ url_for('delete', stream_id=stream.id) }}">Delete</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('m3u') }}">Download M3U Playlist</a>
+</body>
+</html>
