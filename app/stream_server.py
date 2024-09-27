@@ -1,6 +1,7 @@
 import subprocess
 from flask import Response, stream_with_context
 import logging
+from database import get_stream_by_id  # Added missing import
 
 def streamlink_stream(stream_id):
     stream = get_stream_by_id(stream_id)
@@ -19,7 +20,7 @@ def streamlink_stream(stream_id):
 
         def generate():
             while True:
-                chunk = process.stdout.read(1024 * 8)
+                chunk = process.stdout.read(8192)
                 if not chunk:
                     break
                 yield chunk

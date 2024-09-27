@@ -1,12 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, Response
-from database import init_db, add_stream, get_streams, delete_stream, get_stream_by_id
+from database import init_db, add_stream, get_streams, delete_stream
 from m3u_generator import generate_m3u
 from stream_server import streamlink_stream
 import logging
 
+logging.basicConfig(level=logging.INFO)
+
 app = Flask(__name__)
 init_db()
-logging.basicConfig(level=logging.INFO)
 
 @app.route('/')
 def index():
@@ -37,3 +38,4 @@ def stream(stream_id):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+

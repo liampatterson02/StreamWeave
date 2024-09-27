@@ -1,6 +1,6 @@
 import sqlite3
 
-DB_NAME = 'streams.db'
+DB_NAME = '/app/streams.db'  # Use an absolute path
 
 def init_db():
     conn = sqlite3.connect(DB_NAME)
@@ -52,3 +52,4 @@ class Stream:
         self.name = name
         self.url = url
         self.auth = auth
+
