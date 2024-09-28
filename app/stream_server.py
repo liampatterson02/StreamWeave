@@ -1,7 +1,10 @@
 import subprocess
-from flask import Response, stream_with_context
+from flask import Response, stream_with_context, request, abort
 import logging
-from database import get_stream_by_id  # Added missing import
+from database import get_stream_by_id
+import threading
+import queue
+import time
 
 def streamlink_stream(stream_id):
     stream = get_stream_by_id(stream_id)
@@ -12,27 +15,38 @@ def streamlink_stream(stream_id):
 
     if stream.auth:
         # Assuming auth is in the format "username:password"
-        username, password = stream.auth.split(':')
-        cmd.extend(['--http-user', username, '--http-pass', password])
+        # Adjust to handle plugin-specific authentication below
+        pass  # We'll modify this in the next section
+
+    # Include any additional parameters
+    if stream.params:
+        cmd.extend(stream.params.split())
 
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1)
 
         def generate():
-            while True:
-                chunk = process.stdout.read(8192)
-                if not chunk:
-                    break
-                yield chunk
-            process.stdout.close()
-            process.wait()
-
-            # Log any stderr output after the process ends
-            stderr = process.stderr.read()
-            if stderr:
-                logging.error(stderr.decode())
-
-            process.stderr.close()
+            try:
+                while True:
+                    chunk = process.stdout.read(8192)
+                    if not chunk:
+                        break
+                    yield chunk
+                    # If client disconnected, terminate the subprocess
+                    if request.environ.get('wsgi.input').closed:
+                        break
+                process.stdout.close()
+            except GeneratorExit:
+                pass
+            except Exception as e:
+                logging.exception("Error in streaming generator")
+            finally:
+                process.terminate()
+                process.wait()
+                stderr = process.stderr.read()
+                if stderr:
+                    logging.error(stderr.decode())
+                process.stderr.close()
 
         return Response(
             stream_with_context(generate()),
