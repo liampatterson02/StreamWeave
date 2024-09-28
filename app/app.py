@@ -4,7 +4,11 @@ from m3u_generator import generate_m3u
 from stream_server import streamlink_stream
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s:%(message)s',
+    handlers=[logging.StreamHandler()]
+)
 
 app = Flask(__name__)
 init_db()
@@ -19,7 +23,8 @@ def add():
     name = request.form['name']
     url = request.form['url']
     auth = request.form.get('auth', '')
-    add_stream(name, url, auth)
+    plugin_params = request.form.get('plugin_params', '')
+    add_stream(name, url, auth, plugin_params)
     return redirect(url_for('index'))
 
 @app.route('/delete/<int:stream_id>')

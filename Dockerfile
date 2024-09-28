@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install -y \
 
 # Set the working directory
 WORKDIR /app
-RUN mkdir -p /app/data
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt .

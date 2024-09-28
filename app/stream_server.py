@@ -1,10 +1,27 @@
 import subprocess
-from flask import Response, stream_with_context, request, abort
+from flask import Response, stream_with_context, request
 import logging
 from database import get_stream_by_id
-import threading
-import queue
-import time
+import shlex
+
+ALLOWED_PARAMS = {
+    '--bbciplayer-username',
+    '--bbciplayer-password',
+    # Add other allowed parameters here
+}
+
+def validate_params(params_str):
+    tokens = shlex.split(params_str)
+    validated_tokens = []
+    for i, token in enumerate(tokens):
+        if token.startswith('--'):
+            if token not in ALLOWED_PARAMS:
+                raise ValueError(f"Parameter {token} is not allowed.")
+            # Ensure the parameter has an associated value
+            if i + 1 >= len(tokens) or tokens[i + 1].startswith('--'):
+                raise ValueError(f"Parameter {token} requires a value.")
+            validated_tokens.extend([token, tokens[i + 1]])
+    return validated_tokens
 
 def streamlink_stream(stream_id):
     stream = get_stream_by_id(stream_id)
@@ -13,14 +30,13 @@ def streamlink_stream(stream_id):
 
     cmd = ['streamlink', stream.url, 'best', '-O']
 
-    if stream.auth:
-        # Assuming auth is in the format "username:password"
-        # Adjust to handle plugin-specific authentication below
-        pass  # We'll modify this in the next section
-
-    # Include any additional parameters
     if stream.params:
-        cmd.extend(stream.params.split())
+        try:
+            additional_params = validate_params(stream.params)
+            cmd.extend(additional_params)
+        except ValueError as e:
+            logging.error(str(e))
+            return Response(str(e), status=400)
 
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1)
@@ -32,7 +48,6 @@ def streamlink_stream(stream_id):
                     if not chunk:
                         break
                     yield chunk
-                    # If client disconnected, terminate the subprocess
                     if request.environ.get('wsgi.input').closed:
                         break
                 process.stdout.close()

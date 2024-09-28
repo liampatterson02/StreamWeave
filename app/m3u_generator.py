@@ -9,3 +9,4 @@ def generate_m3u():
         m3u_lines.append(f'#EXTINF:-1,{stream.name}')
         m3u_lines.append(stream_url)
     return '\n'.join(m3u_lines)
+

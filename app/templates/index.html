@@ -11,7 +11,9 @@
         <label for="url">Stream URL:</label><br>
         <input type="text" id="url" name="url" required><br>
         <label for="auth">Authentication (optional):</label><br>
-        <input type="text" id="auth" name="auth"><br><br>
+        <input type="text" id="auth" name="auth"><br>
+        <label for="plugin_params">Plugin Parameters (optional):</label><br>
+        <textarea id="plugin_params" name="plugin_params" rows="4" cols="50" placeholder="e.g., --bbciplayer-username myuser --bbciplayer-password mypass"></textarea><br><br>
         <input type="submit" value="Add Stream">
     </form>
     <h2>Available Streams</h2>
@@ -25,3 +27,4 @@
     <a href="{{ url_for('m3u') }}">Download M3U Playlist</a>
 </body>
 </html>
+
