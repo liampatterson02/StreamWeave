@@ -3,6 +3,8 @@ from flask import Response, stream_with_context
 import logging
 from database import get_stream_by_id
 import shlex
+import gevent
+from gevent.subprocess import Popen, PIPE
 
 ALLOWED_PARAMS = {
     '--bbciplayer-username',
@@ -45,7 +47,8 @@ def streamlink_stream(stream_id):
             return Response(str(e), status=400)
 
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # Use gevent's Popen
+        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
 
         def generate():
             try:
@@ -54,6 +57,7 @@ def streamlink_stream(stream_id):
                     if not chunk:
                         break
                     yield chunk
+                process.stdout.close()
             except GeneratorExit:
                 # Client disconnected
                 pass
@@ -65,7 +69,6 @@ def streamlink_stream(stream_id):
                 stderr = process.stderr.read()
                 if stderr:
                     logging.error(stderr.decode())
-                process.stdout.close()
                 process.stderr.close()
 
         return Response(
