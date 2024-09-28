@@ -29,5 +29,5 @@ USER appuser
 EXPOSE 5000
 
 # Run the application with Gunicorn using gevent worker class and increased timeout
-CMD ["gunicorn", "--worker-class", "gevent", "--bind", "0.0.0.0:5000", "--timeout", "3600", "app:app"]
+CMD ["gunicorn", "--worker-class", "gevent", "--bind", "0.0.0.0:5000", "--timeout", "28800", "app:app"]
 
